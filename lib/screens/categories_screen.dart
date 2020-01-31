@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
-import './dummy-data.dart';
-import './category_item.dart';
+import '../dummy-data.dart';
+import '../widgets/category_item.dart';
 
-class CategoriiesScreen extends StatelessWidget {
+class CategoriesScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -16,6 +16,7 @@ class CategoriiesScreen extends StatelessWidget {
         padding: const EdgeInsets.all(20),
         children: DUMMY_CATEGORIES
             .map((catData) => CategoryItem(
+                  catData.id,
                   catData.title,
                   catData.color,
                 ))
