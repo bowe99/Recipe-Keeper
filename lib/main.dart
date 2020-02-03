@@ -1,3 +1,4 @@
+import 'package:app_3/dummy-data.dart';
 import 'package:flutter/material.dart';
 
 import './screens/categories_screen.dart';
@@ -5,11 +6,66 @@ import './screens/category_meals_screen.dart';
 import './screens/meal_detail_screen.dart';
 import './screens/tabs_screen.dart';
 import './screens/filters_screen.dart';
+import 'models/meal.dart';
 
 
 void main() => runApp(RecipeKeeper());
 
-class RecipeKeeper extends StatelessWidget {
+class RecipeKeeper extends StatefulWidget {
+  @override
+  _RecipeKeeperState createState() => _RecipeKeeperState();
+}
+
+class _RecipeKeeperState extends State<RecipeKeeper> {
+
+  Map<String, bool> _filters ={
+    'gluten': false,
+    'vegan': false,
+    'vegetarian': false,
+    'lactose': false,
+  };
+
+  List<Meal> _availableMeals = DUMMY_MEALS;
+  List<Meal> _favoriteMeals = [];
+
+  void _setFilters(Map<String, bool> newFilters){
+    setState(() {
+      _filters = newFilters;
+
+      _availableMeals = DUMMY_MEALS.where((meal){
+        if(_filters['gluten'] && !meal.isGlutenFree ||
+           _filters['vegan'] && !meal.isVegan ||
+           _filters['vegetarian'] && !meal.isVegetarian ||
+           _filters['lactose'] && !meal.isLactoseFree){
+          return false;
+        }
+        else{
+          return true;
+        }
+      }).toList();
+    });
+  }
+
+  void _toggleFavorite(String mealId) {
+    final existingIndex = _favoriteMeals.indexWhere((meal) {
+      return mealId == meal.id;
+    });
+    if(existingIndex >= 0){
+      setState(() {
+        _favoriteMeals.removeAt(existingIndex);
+      });
+    }
+    else{
+      setState(() {
+        _favoriteMeals.add(DUMMY_MEALS.firstWhere((meal) => meal.id == mealId));
+      });
+    }
+  }
+
+  bool _isMealFavorite(String mealId){
+    return _favoriteMeals.any((meal) => meal.id == mealId);
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -22,7 +78,7 @@ class RecipeKeeper extends StatelessWidget {
           fontFamily: 'Raleway',
           textTheme: ThemeData.light().textTheme.copyWith(
                 body1: TextStyle(
-                  color: Color.fromRGBO(20, 51, 51, 1),
+                  color: Color.fromRGBO(122, 122, 122, 1),
                 ),
                 body2: TextStyle(
                   color: Color.fromRGBO(20, 51, 51, 1),
@@ -34,10 +90,10 @@ class RecipeKeeper extends StatelessWidget {
               )),
       initialRoute: '/',
       routes: {
-        '/': (ctx) => TabScreen(),
-        CategoryMealsScreen.routeName: (ctx) => CategoryMealsScreen(),
-        MealDetailScreen.routeName: (ctx) => MealDetailScreen(),
-        FiltersScreen.routeName: (ctx) => FiltersScreen(),
+        '/': (ctx) => TabScreen(_favoriteMeals),
+        CategoryMealsScreen.routeName: (ctx) => CategoryMealsScreen(_availableMeals),
+        MealDetailScreen.routeName: (ctx) => MealDetailScreen(_toggleFavorite, _isMealFavorite),
+        FiltersScreen.routeName: (ctx) => FiltersScreen(_filters, _setFilters),
       },
       // onGenerateRoute: (settings) {
       //   print(settings.arguments);
